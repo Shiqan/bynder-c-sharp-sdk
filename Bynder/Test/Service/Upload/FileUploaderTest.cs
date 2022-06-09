@@ -113,7 +113,35 @@ namespace Bynder.Test.Service.Upload
         [Fact]
         public async Task UploadFileToNewAssetAsync()
         {
-            var saveMediaResponse = await _uploader.UploadFileToNewAssetAsync(_path, _brandId, _tags);
+            var saveMediaResponse = await _uploader.UploadFileToNewAssetAsync(_path, new SaveMediaQuery { BrandId = _brandId, Tags = _tags });
+
+            Assert.Equal(_saveMediaResponse, saveMediaResponse);
+
+            CheckFilesServiceRequests();
+
+            _apiRequestSenderMock.Verify(sender => sender.SendRequestAsync(It.Is<ApiRequest<SaveMediaResponse>>(
+                req => req.Path == $"/api/v4/media/save/{_fileId}"
+                    && req.HTTPMethod == HttpMethod.Post
+                    && new CompareLogic().Compare(
+                        req.Query,
+                        new SaveMediaQuery
+                        {
+                            Filename = Path.GetFileName(_path),
+                            BrandId = _brandId,
+                            Tags = _tags,
+                        }
+                    ).AreEqual
+            )));
+        }
+
+        [Fact]
+        public async Task UploadFileToNewAssetStreamAsync()
+        {
+            var stream = new MemoryStream(_fileData);
+            var saveMediaResponse = await _uploader.UploadFileToNewAssetAsync(stream, new SaveMediaQuery { 
+                Filename = Path.GetFileName(_path), 
+                BrandId = _brandId, 
+                Tags = _tags });
 
             Assert.Equal(_saveMediaResponse, saveMediaResponse);
 

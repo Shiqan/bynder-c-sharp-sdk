@@ -1,4 +1,4 @@
-﻿// Copyright (c) Bynder. All rights reserved.
+// Copyright (c) Bynder. All rights reserved.
 // Licensed under the MIT License. See LICENSE file in the project root for full license information.
 
 using System.Collections.Generic;
@@ -11,9 +11,9 @@ namespace Bynder.Sdk.Query.Upload
     public class UploadQuery
     {
         /// <summary>
-        /// File path of the file we want to update.
+        /// File name of the file we want to update.
         /// </summary>
-        public string Filepath { get; set; }
+        public string FileName { get; set; }
 
         /// <summary>
         /// Brand id where we want to store the file
@@ -31,5 +31,10 @@ namespace Bynder.Sdk.Query.Upload
         /// Tags of the file that we want to update
         /// </summary>
         public IList<string> Tags { get; set; }
+        
+        /// <summary>
+        /// Tags of the file that we want to update
+        /// </summary>
+        public IDictionary<string, IList<string>> MetaProperties { get; set; }
     }
 }

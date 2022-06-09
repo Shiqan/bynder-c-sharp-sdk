@@ -3,10 +3,12 @@
 
 using System;
 using System.Collections.Generic;
+using System.IO;
 using System.Threading.Tasks;
 using Bynder.Sdk.Model;
 using Bynder.Sdk.Model.Upload;
 using Bynder.Sdk.Query.Asset;
+using Bynder.Sdk.Query.Upload;
 
 namespace Bynder.Sdk.Service.Asset
 {
@@ -105,7 +107,38 @@ namespace Bynder.Sdk.Service.Asset
         /// <param name="tags">tags that will be added on the asset</param>
         /// <returns></returns>
         /// <exception cref="HttpRequestException">Can be thrown when requests to server can't be completed or HTTP code returned by server is an error</exception>
+        [Obsolete("Use UploadFileToNewAssetAsync(Stream fileStream, SaveMediaQuery query) instead")]
         Task<SaveMediaResponse> UploadFileToNewAssetAsync(string path, string brandId, IList<string> tags = default);
+
+        /// <summary>
+        /// Uploads a file to Bynder to be stored as a new asset.
+        /// </summary>
+        /// <param name="fileName">file name of the file to be uploaded</param>
+        /// <param name="fileStream">stream of the file to be uploaded</param>
+        /// <param name="brandId">brand ID to save the asset to</param>
+        /// <param name="tags">tags that will be added on the asset</param>
+        /// <returns></returns>
+        /// <exception cref="HttpRequestException">Can be thrown when requests to server can't be completed or HTTP code returned by server is an error</exception>
+        [Obsolete("Use UploadFileToNewAssetAsync(Stream fileStream, SaveMediaQuery query) instead")]
+        Task<SaveMediaResponse> UploadFileToNewAssetAsync(string fileName, Stream fileStream, string brandId, IList<string> tags = default);
+
+        /// <summary>
+        /// Uploads a file to Bynder to be stored as a new asset.
+        /// </summary>
+        /// <param name="path">path to the file to be uploaded</param>
+        /// <param name="query">Information about tag which will be set to media files</param>
+        /// <returns><see cref="SaveMediaResponse"/></returns>
+        /// <exception cref="HttpRequestException">Can be thrown when requests to server can't be completed or HTTP code returned by server is an error</exception>
+        Task<SaveMediaResponse> UploadFileToNewAssetAsync(string path, SaveMediaQuery query);
+
+        /// <summary>
+        /// Uploads a file to Bynder to be stored as a new asset.
+        /// </summary>
+        /// <param name="fileStream">stream of the file to be uploaded</param>
+        /// <param name="query">Information about tag which will be set to media files</param>
+        /// <returns><see cref="SaveMediaResponse"/></returns>
+        /// <exception cref="HttpRequestException">Can be thrown when requests to server can't be completed or HTTP code returned by server is an error</exception>
+        Task<SaveMediaResponse> UploadFileToNewAssetAsync(Stream fileStream, SaveMediaQuery query);
 
         /// <summary>
         /// Uploads a file to Bynder to be stored as a new version of an existing asset.
@@ -115,6 +148,16 @@ namespace Bynder.Sdk.Service.Asset
         /// <returns>Information about the created asset</returns>
         /// <exception cref="HttpRequestException">Can be thrown when requests to server can't be completed or HTTP code returned by server is an error</exception>
         Task<SaveMediaResponse> UploadFileToExistingAssetAsync(string path, string mediaId);
+
+        /// <summary>
+        /// Uploads a file to Bynder to be stored as a new version of an existing asset.
+        /// </summary>
+        /// <param name="fileName">file name of the file to be uploaded</param>
+        /// <param name="fileStream">stream of the file to be uploaded</param>
+        /// <param name="mediaId">Asset ID for which to save the new version.</param>
+        /// <returns>Information about the created asset</returns>
+        /// <exception cref="HttpRequestException">Can be thrown when requests to server can't be completed or HTTP code returned by server is an error</exception>
+        Task<SaveMediaResponse> UploadFileToExistingAssetAsync(string fileName, Stream fileStream, string mediaId);
 
         /// <summary>
         /// Create an asset usage operation to track usage of Bynder assets in third party applications.
