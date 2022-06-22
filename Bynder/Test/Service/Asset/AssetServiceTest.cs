@@ -45,17 +45,36 @@ namespace Bynder.Test.Service.Asset
             Assert.Equal(result, brandList);
         }
 
-        [Fact]
-        public async Task GetMetapropertiesCallsRequestSenderWithValidRequest()
+        [Theory]
+        [InlineData("/api/v4/metaproperties/?options=0&count=0", false, false)]
+        [InlineData("/api/v4/metaproperties/?options=1&count=0", true, false)]
+        [InlineData("/api/v4/metaproperties/?options=0&count=1", false, true)]
+        [InlineData("/api/v4/metaproperties/?options=1&count=1", true, true)]
+        [InlineData("/api/v4/metaproperties/?options=1&count=0", null, null, true)]
+        public async Task GetMetapropertiesCallsRequestSenderWithValidRequest(string expectedPath, bool includeOptions, bool includeCount, bool useDefaults = false)
         {
             var result = new Dictionary<string, Metaproperty>();
             _apiRequestSenderMock.Setup(sender => sender.SendRequestAsync(It.IsAny<ApiRequest<IDictionary<string, Metaproperty>>>()))
                 .ReturnsAsync(result);
-            var metaproperties = await _assetService.GetMetapropertiesAsync();
+
+            IDictionary<string, Metaproperty> metaproperties;
+            if (useDefaults)
+            {
+                metaproperties = await _assetService.GetMetapropertiesAsync();
+            }
+            else
+            {
+                metaproperties = await _assetService.GetMetapropertiesAsync(new MetapropertiesQuery()
+                {
+                    Count = includeCount,
+                    Options = includeOptions
+                });
+
+            }
 
             _apiRequestSenderMock.Verify(sender => sender.SendRequestAsync(
                 It.Is<ApiRequest<IDictionary<string, Metaproperty>>>(
-                    req => req.Path == "/api/v4/metaproperties/"
+                    req => req.Path == expectedPath
                     && req.HTTPMethod == HttpMethod.Get
                     && req.Query == null
                 )
@@ -221,6 +240,24 @@ namespace Bynder.Test.Service.Asset
             ));
         }
 
+        [Fact]
+        public async Task CreateMetapropertyOptionCallsRequestSenderWithValidRequest()
+        {
+            var result = new Status { Message = "Accepted", StatusCode = 200 };
+            _apiRequestSenderMock.Setup(sender => sender.SendRequestAsync(It.IsAny<ApiRequest>()))
+                .ReturnsAsync(result);
+            var query = new CreateMetapropertyOptionsQuery("name");
+            await _assetService.CreateMetapropertyOptionAsync("metapropertyId", query);
+
+            _apiRequestSenderMock.Verify(sender => sender.SendRequestAsync(
+                It.Is<ApiRequest>(req =>
+                    req.Path == $"/api/v4/metaproperties/metapropertyId/options"
+                    && req.HTTPMethod == HttpMethod.Post
+                    && (req.Query as CreateMetapropertyOptionsQueryData).Query == new CreateMetapropertyOptionsQueryData(query).Query
+                )
+            ));
+        }
+        
         [Fact]
         public async Task CreateAssetUsageCallsRequestSenderWithValidRequest()
         {

@@ -39,7 +39,7 @@ namespace Bynder.Sdk.Service.Asset
         /// </summary>
         /// <returns>Task with dictionary of metaproperties</returns>
         /// <exception cref="HttpRequestException">Can be thrown when requests to server can't be completed or HTTP code returned by server is an error</exception>
-        Task<IDictionary<string, Metaproperty>> GetMetapropertiesAsync();
+        Task<IDictionary<string, Metaproperty>> GetMetapropertiesAsync(MetapropertiesQuery query = default);
 
         /// <summary>
         /// Retrieve specific Metaproperty
@@ -52,10 +52,26 @@ namespace Bynder.Sdk.Service.Asset
         /// <summary>
         /// Retrieve metaproperty dependencies
         /// </summary>
-        /// <param name="query">iquery containing the metaproperty ID</param>
+        /// <param name="query">query containing the metaproperty ID</param>
         /// <returns>List of the metaproperty's dependencies</returns>
         /// <exception cref="HttpRequestException">Can be thrown when requests to server can't be completed or HTTP code returned by server is an error</exception>
         Task<IList<string>> GetMetapropertyDependenciesAsync(MetapropertyQuery query);
+
+        /// <summary>
+        /// Retrieve metaproperty options
+        /// </summary>
+        /// <param name="query">query containing the metaproperty ID</param>
+        /// <returns>List of the metaproperty's options</returns>
+        /// <exception cref="HttpRequestException">Can be thrown when requests to server can't be completed or HTTP code returned by server is an error</exception>
+        Task<IList<MetapropertyOption>> GetMetapropertyOptionsAsync(MetapropertyOptionsQuery query);
+
+        /// <summary>
+        /// Create a new metaproperty option
+        /// </summary>
+        /// <param name="query">query containing the metaproperty ID</param>
+        /// <returns>List of the metaproperty's options</returns>
+        /// <exception cref="HttpRequestException">Can be thrown when requests to server can't be completed or HTTP code returned by server is an error</exception>
+        Task<Status> CreateMetapropertyOptionAsync(string metapropertyId, CreateMetapropertyOptionsQuery query);
 
         /// <summary>
         /// Gets all the information for a specific mediaId. This is needed 
