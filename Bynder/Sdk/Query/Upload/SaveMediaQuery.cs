@@ -1,6 +1,7 @@
 // Copyright (c) Bynder. All rights reserved.
 // Licensed under the MIT License. See LICENSE file in the project root for full license information.
 
+using System;
 using System.Collections.Generic;
 using Bynder.Sdk.Api.Converters;
 using Bynder.Sdk.Query.Decoder;
@@ -14,6 +15,15 @@ namespace Bynder.Sdk.Query.Upload
 
         [ApiField("name")]
         public string Filename { get; set; }
+
+        [ApiField("copyright")]
+        public string Copyright { get; set; }
+        
+        [ApiField("description")]
+        public string Description { get; set; }
+
+        [ApiField("ISOPublicationDate", Converter = typeof(DateTimeOffsetConverter))]
+        public DateTimeOffset? PublicationDate { get; set; }
 
         [ApiField("tags", Converter = typeof(ListConverter))]
         public IList<string> Tags { get; set; }

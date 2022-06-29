@@ -19,12 +19,15 @@ namespace Bynder.Test.Api.Converters
             Assert.True(converter.CanConvert(typeof(DateTimeOffset)));
         }
 
-        [Fact]
-        public void ConvertReturnsStringWithDate()
+        [Theory]
+        [InlineData("1000-01-01", "1000-01-01T00:00:00Z")]
+        [InlineData("2002-02-02", "2002-02-02T00:00:00Z")]
+        [InlineData(null, "")]
+        public void ConvertReturnsStringWithDate(string input, string expected)
         {
             DateTimeOffsetConverter converter = new DateTimeOffsetConverter();
-            var date = converter.Convert(new DateTimeOffset(new DateTime(1000, 1, 1)));
-            Assert.Equal("1000-01-01T00:00:00Z", date);
+            var date = converter.Convert(string.IsNullOrEmpty(input) ? null : DateTimeOffset.Parse(input));
+            Assert.Equal(expected, date);
         }
     }
 }
