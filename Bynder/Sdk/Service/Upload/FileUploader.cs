@@ -1,15 +1,15 @@
 // Copyright (c) Bynder. All rights reserved.
 // Licensed under the MIT License. See LICENSE file in the project root for full license information.
 
+using Bynder.Sdk.Api.Requests;
+using Bynder.Sdk.Api.RequestSender;
+using Bynder.Sdk.Exceptions;
+using Bynder.Sdk.Model;
+using Bynder.Sdk.Query.Upload;
 using System.Collections.Generic;
 using System.IO;
 using System.Net.Http;
 using System.Threading.Tasks;
-using Bynder.Sdk.Exceptions;
-using Bynder.Sdk.Api.Requests;
-using Bynder.Sdk.Api.RequestSender;
-using Bynder.Sdk.Model;
-using Bynder.Sdk.Query.Upload;
 
 namespace Bynder.Sdk.Service.Upload
 {
@@ -72,44 +72,66 @@ namespace Bynder.Sdk.Service.Upload
         /// <summary>
         /// Uploads a file with the data specified in query parameter
         /// </summary>
+        /// <param name="fileStream">Stream of the file to upload</param>
         /// <param name="query">Upload query information to upload a file</param>
         /// <returns>Task representing the upload</returns>
-        public async Task<SaveMediaResponse> UploadFileAsync(UploadQuery query)
+        public async Task<SaveMediaResponse> UploadFileAsync(Stream fileStream, SaveMediaQuery query)
         {
-            var uploadRequest = await RequestUploadInformationAsync(new RequestUploadQuery { Filename = query.Filepath }).ConfigureAwait(false);
+            var uploadRequest = await UploadRequest(query.FileName).ConfigureAwait(false);
+            var finalizeResponse = await UploadStream(query.FileName, fileStream, uploadRequest).ConfigureAwait(false);
+            return await FinalizeUploadRequest(finalizeResponse, query).ConfigureAwait(false);
+        }
 
-            uint chunkNumber = 0;
+        /// <summary>
+        /// Uploads a file with the data specified in query parameter
+        /// </summary>
+        /// <param name="filePath">Path of the file to upload</param>
+        /// <param name="query">Upload query information to upload a file</param>
+        /// <returns>Task representing the upload</returns>
+        public async Task<SaveMediaResponse> UploadFileAsync(string filePath, SaveMediaQuery query)
+        {
+            var uploadRequest = await UploadRequest(query.FileName).ConfigureAwait(false);
 
-            using (var file = File.Open(query.Filepath, FileMode.Open, FileAccess.Read, FileShare.ReadWrite | FileShare.Delete))
+            FinalizeResponse finalizeResponse;
+            using (var fileStream = File.Open(filePath, FileMode.Open, FileAccess.Read, FileShare.ReadWrite | FileShare.Delete))
             {
-                int bytesRead = 0;
-                var buffer = new byte[CHUNK_SIZE];
-                long numberOfChunks = (file.Length + CHUNK_SIZE - 1) / CHUNK_SIZE;
-
-                while ((bytesRead = file.Read(buffer, 0, buffer.Length)) > 0)
-                {
-                    ++chunkNumber;
-                    await UploadPartAsync(Path.GetFileName(query.Filepath), buffer, bytesRead, chunkNumber, uploadRequest, (uint)numberOfChunks).ConfigureAwait(false);
-                }
+                finalizeResponse = await UploadStream(query.FileName, fileStream, uploadRequest).ConfigureAwait(false);
             }
 
-            var finalizeResponse = await FinalizeUploadAsync(uploadRequest, chunkNumber).ConfigureAwait(false);
+            return await FinalizeUploadRequest(finalizeResponse, query).ConfigureAwait(false);
+        }
 
+        private async Task<UploadRequest> UploadRequest(string fileName)
+        {
+            return await RequestUploadInformationAsync(new RequestUploadQuery { Filename = fileName }).ConfigureAwait(false);
+        }
+
+        private async Task<SaveMediaResponse> FinalizeUploadRequest(FinalizeResponse finalizeResponse, SaveMediaQuery query)
+        {
             if (await HasFinishedSuccessfullyAsync(finalizeResponse).ConfigureAwait(false))
             {
-                return await SaveMediaAsync(new SaveMediaQuery
-                {
-                    Filename = query.Filepath,
-                    BrandId = query.BrandId,
-                    ImportId = finalizeResponse.ImportId,
-                    MediaId = query.MediaId,
-                    Tags = query.Tags
-                }).ConfigureAwait(false);
+                return await SaveMediaAsync(finalizeResponse.ImportId, query).ConfigureAwait(false);
             }
             else
             {
                 throw new BynderUploadException("Converter did not finished. Upload not completed");
             }
+        }
+
+        private async Task<FinalizeResponse> UploadStream(string fileName, Stream fileStream, UploadRequest uploadRequest)
+        {
+            uint chunkNumber = 0;
+            var bytesRead = 0;
+            var buffer = new byte[CHUNK_SIZE];
+            var numberOfChunks = (fileStream.Length + CHUNK_SIZE - 1) / CHUNK_SIZE;
+
+            while ((bytesRead = fileStream.Read(buffer, 0, buffer.Length)) > 0)
+            {
+                ++chunkNumber;
+                await UploadPartAsync(fileName, buffer, bytesRead, chunkNumber, uploadRequest, (uint)numberOfChunks).ConfigureAwait(false);
+            }
+
+            return await FinalizeUploadAsync(uploadRequest, chunkNumber).ConfigureAwait(false);
         }
 
         /// <summary>
@@ -138,18 +160,18 @@ namespace Bynder.Sdk.Service.Upload
         /// </summary>
         /// <param name="query">Query with necessary information to save the asset</param>
         /// <returns>Task that represents the save</returns>
-        private async Task<SaveMediaResponse> SaveMediaAsync(SaveMediaQuery query)
+        private async Task<SaveMediaResponse> SaveMediaAsync(string importId, SaveMediaQuery query)
         {
-            query.Filename = Path.GetFileName(query.Filename);
+            query.FileName = Path.GetFileName(query.FileName);
 
             string path = null;
             if (query.MediaId == null)
             {
-                path = $"/api/v4/media/save/{query.ImportId}/";
+                path = $"/api/v4/media/save/{importId}/";
             }
             else
             {
-                path = $"/api/v4/media/{query.MediaId}/save/{query.ImportId}/";
+                path = $"/api/v4/media/{query.MediaId}/save/{importId}/";
             }
 
             var request = new ApiRequest<SaveMediaResponse>
@@ -220,7 +242,7 @@ namespace Bynder.Sdk.Service.Upload
         /// <returns>Task returning true if file has finished converting successfully. False otherwise</returns>
         private async Task<bool> HasFinishedSuccessfullyAsync(FinalizeResponse finalizeResponse)
         {
-            for (int iterations = MAX_POLLING_ITERATIONS; iterations > 0; --iterations)
+            for (var iterations = MAX_POLLING_ITERATIONS; iterations > 0; --iterations)
             {
                 var pollStatus = await PollStatusAsync(finalizeResponse).ConfigureAwait(false);
                 if (pollStatus != null)

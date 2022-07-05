@@ -11,6 +11,7 @@ using System.Threading.Tasks;
 using System.Linq;
 using Bynder.Sdk.Model;
 using Bynder.Sdk.Query.Upload;
+using System.IO;
 
 namespace Bynder.Sample
 {
@@ -77,7 +78,7 @@ namespace Bynder.Sample
                 return;
             }
 
-            await assetService.UploadFileAsync(new UploadQuery { Filepath = uploadPath, BrandId = brands.First().Id });
+            await assetService.UploadFileAsync(uploadPath, new SaveMediaQuery { FileName = Path.GetFileName(uploadPath), BrandId = brands.First().Id });
 
             //TODO: This can be done instead when UploadFileToNewAssetAsync gets the correct response type
             //var saveMediaResponse = await assetService.UploadFileToNewAssetAsync(uploadPath, brands.First().Id);

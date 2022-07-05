@@ -11,6 +11,7 @@ using Bynder.Sdk.Api.RequestSender;
 using Bynder.Sdk.Model;
 using Bynder.Sdk.Query.Asset;
 using Bynder.Sdk.Query.Upload;
+using System.IO;
 
 namespace Bynder.Sdk.Service.Asset
 {
@@ -39,10 +40,7 @@ namespace Bynder.Sdk.Service.Asset
             _uploader = FileUploader.Create(_requestSender);
         }
 
-        /// <summary>
-        /// Check <see cref="IAssetService"/> for more information
-        /// </summary>
-        /// <returns>Check <see cref="IAssetService"/> for more information</returns>
+        /// <inheritdoc/>
         public async Task<IList<Brand>> GetBrandsAsync()
         {
             return await _requestSender.SendRequestAsync(new ApiRequest<IList<Brand>>
@@ -52,24 +50,23 @@ namespace Bynder.Sdk.Service.Asset
             }).ConfigureAwait(false);
         }
 
-        /// <summary>
-        /// Check <see cref="IAssetService"/> for more information
-        /// </summary>
-        /// <returns>Check <see cref="IAssetService"/> for more information</returns>
-        public async Task<IDictionary<string, Metaproperty>> GetMetapropertiesAsync()
+        /// <inheritdoc/>
+        public async Task<IDictionary<string, Metaproperty>> GetMetapropertiesAsync(MetapropertiesQuery query = default)
         {
+            if (query is null)
+            {
+                query = new MetapropertiesQuery();
+            }
+
+            var path = $"/api/v4/metaproperties/?options={(query.Options ? "1" : "0")}&count={(query.Count ? "1" : "0")}";
             return await _requestSender.SendRequestAsync(new ApiRequest<IDictionary<string, Metaproperty>>
             {
-                Path = "/api/v4/metaproperties/",
+                Path = path,
                 HTTPMethod = HttpMethod.Get,
             }).ConfigureAwait(false);
         }
 
-        /// <summary>
-        /// Check <see cref="IAssetService"/> for more information
-        /// </summary>
-        /// <param name="query">Check <see cref="IAssetService"/> for more information</param>
-        /// <returns>Check <see cref="IAssetService"/> for more information</returns>
+        /// <inheritdoc/>
         public async Task<Metaproperty> GetMetapropertyAsync(MetapropertyQuery query)
         {
             return await _requestSender.SendRequestAsync(new ApiRequest<Metaproperty>
@@ -79,11 +76,29 @@ namespace Bynder.Sdk.Service.Asset
             }).ConfigureAwait(false);
         }
 
-        /// <summary>
-        /// Check <see cref="IAssetService"/> for more information
-        /// </summary>
-        /// <param name="query">Check <see cref="IAssetService"/> for more information</param>
-        /// <returns>Check <see cref="IAssetService"/> for more information</returns>
+        /// <inheritdoc/>
+        public async Task<IList<MetapropertyOption>> GetMetapropertyOptionsAsync(MetapropertyOptionsQuery query)
+        {
+            var queryPath = $"?name={query.Name}&limit={query.Limit}&page={query.Page}";
+            return await _requestSender.SendRequestAsync(new ApiRequest<List<MetapropertyOption>>
+            {
+                Path = $"/api/v4/metaproperties/{query.MetapropertyId}/{queryPath}",
+                HTTPMethod = HttpMethod.Get,
+            }).ConfigureAwait(false);
+        }
+
+        /// <inheritdoc/>
+        public async Task<Status> CreateMetapropertyOptionAsync(string metapropertyId, CreateMetapropertyOptionsQuery query)
+        {
+            return await _requestSender.SendRequestAsync(new ApiRequest
+            {
+                Path = $"/api/v4/metaproperties/{metapropertyId}/options",
+                HTTPMethod = HttpMethod.Post,
+                Query = new CreateMetapropertyOptionsQueryData(query),
+            }).ConfigureAwait(false);
+        }
+
+        /// <inheritdoc/>
         public async Task<IList<String>> GetMetapropertyDependenciesAsync(MetapropertyQuery query)
         {
             return await _requestSender.SendRequestAsync(new ApiRequest<IList<string>>
@@ -93,11 +108,7 @@ namespace Bynder.Sdk.Service.Asset
             }).ConfigureAwait(false);
         }
 
-        /// <summary>
-        /// Check <see cref="IAssetService"/> for more information
-        /// </summary>
-        /// <param name="query">Check <see cref="IAssetService"/> for more information</param>
-        /// <returns>Check <see cref="IAssetService"/> for more information</returns>
+        /// <inheritdoc/>
         public async Task<IList<Media>> GetMediaListAsync(MediaQuery query)
         {
             return await _requestSender.SendRequestAsync(new ApiRequest<IList<Media>>
@@ -108,11 +119,7 @@ namespace Bynder.Sdk.Service.Asset
             }).ConfigureAwait(false);
         }
 
-        /// <summary>
-        /// Check <see cref="IAssetService"/> for more information
-        /// </summary>
-        /// <param name="query">Check <see cref="IAssetService"/> for more information</param>
-        /// <returns>Check <see cref="IAssetService"/> for more information</returns>
+        /// <inheritdoc/>
         public async Task<Uri> GetDownloadFileUrlAsync(DownloadMediaQuery query)
         {
             string path;
@@ -133,21 +140,29 @@ namespace Bynder.Sdk.Service.Asset
             return downloadFileInformation.S3File;
         }
 
-        /// <summary>
-        /// Check <see cref="IAssetService"/> for more information
-        /// </summary>
-        /// <param name="query">Check <see cref="IAssetService"/> for more information</param>
-        /// <returns>Check <see cref="IAssetService"/> for more information</returns>
-        public async Task<SaveMediaResponse> UploadFileAsync(UploadQuery query)
+        /// <inheritdoc/>
+        public async Task<SaveMediaResponse> UploadFileAsync(SaveMediaQuery query)
         {
-            return await _uploader.UploadFileAsync(query).ConfigureAwait(false);
+            return await UploadFileAsync(query.FileName, query);
         }
 
-        /// <summary>
-        /// Check <see cref="IAssetService"/> for more information
-        /// </summary>
-        /// <param name="query">Check <see cref="IAssetService"/> for more information</param>
-        /// <returns>Check <see cref="IAssetService"/> for more information</returns>
+        /// <inheritdoc/>
+        public async Task<SaveMediaResponse> UploadFileAsync(Stream fileStream, SaveMediaQuery query)
+        {
+            return await _uploader.UploadFileAsync(fileStream, query).ConfigureAwait(false);
+        }
+
+        /// <inheritdoc/>
+        public async Task<SaveMediaResponse> UploadFileAsync(string filePath, SaveMediaQuery query)
+        {
+            if (string.IsNullOrEmpty(query.FileName))
+            {
+                query.FileName = Path.GetFileName(filePath);
+            }
+            return await _uploader.UploadFileAsync(filePath, query).ConfigureAwait(false);
+        }
+
+        /// <inheritdoc/>
         public async Task<Media> GetMediaInfoAsync(MediaInformationQuery query)
         {
             return await _requestSender.SendRequestAsync(new ApiRequest<Media>
@@ -158,11 +173,7 @@ namespace Bynder.Sdk.Service.Asset
             }).ConfigureAwait(false);
         }
 
-        /// <summary>
-        /// Check <see cref="IAssetService"/> for more information
-        /// </summary>
-        /// <param name="query">Check <see cref="IAssetService"/> for more information</param>
-        /// <returns>Check <see cref="IAssetService"/> for more information</returns>
+        /// <inheritdoc/>
         public async Task<Status> ModifyMediaAsync(ModifyMediaQuery query)
         {
             return await _requestSender.SendRequestAsync(new ApiRequest
@@ -173,10 +184,7 @@ namespace Bynder.Sdk.Service.Asset
             }).ConfigureAwait(false);
         }
 
-        /// <summary>
-        /// Check <see cref="IAssetService"/> for more information
-        /// </summary>
-        /// <returns>Check <see cref="IAssetService"/> for more information</returns>
+        /// <inheritdoc/>
         public async Task<IList<Tag>> GetTagsAsync(GetTagsQuery query)
         {
             return await _requestSender.SendRequestAsync(new ApiRequest<IList<Tag>>
@@ -187,10 +195,7 @@ namespace Bynder.Sdk.Service.Asset
             }).ConfigureAwait(false);
         }
 
-        /// <summary>
-        /// Check <see cref="IAssetService"/> for more information
-        /// </summary>
-        /// <returns>Check <see cref="IAssetService"/> for more information</returns>
+        /// <inheritdoc/>
         public async Task<Status> AddTagToMediaAsync(AddTagToMediaQuery query)
         {
             return await _requestSender.SendRequestAsync(new ApiRequest
@@ -201,12 +206,7 @@ namespace Bynder.Sdk.Service.Asset
             }).ConfigureAwait(false);
         }
 
-        /// <summary>
-        /// Create an asset usage operation to track usage of Bynder assets in third party applications.
-        /// </summary>
-        /// <param name="query">Information about the asset usage</param>
-        /// <returns>Task representing the operation</returns>
-        /// <exception cref="HttpRequestException">Can be thrown when requests to server can't be completed or HTTP code returned by server is an error</exception>
+        /// <inheritdoc/>
         public async Task<Status> CreateAssetUsage(AssetUsageQuery query)
         {
             return await _requestSender.SendRequestAsync(new ApiRequest
@@ -217,12 +217,7 @@ namespace Bynder.Sdk.Service.Asset
             }).ConfigureAwait(false);
         }
 
-        /// <summary>
-        /// Delete an asset usage operation to track usage of Bynder assets in third party applications.
-        /// </summary>
-        /// <param name="query">Information about the asset usage</param>
-        /// <returns>Task representing the operation</returns>
-        /// <exception cref="HttpRequestException">Can be thrown when requests to server can't be completed or HTTP code returned by server is an error</exception>
+        /// <inheritdoc/>
         public async Task<Status> DeleteAssetUsage(AssetUsageQuery query)
         {
             return await _requestSender.SendRequestAsync(new ApiRequest

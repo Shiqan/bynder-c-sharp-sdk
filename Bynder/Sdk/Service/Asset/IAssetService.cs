@@ -3,6 +3,7 @@
 
 using System;
 using System.Collections.Generic;
+using System.IO;
 using System.Threading.Tasks;
 using Bynder.Sdk.Model;
 using Bynder.Sdk.Query.Asset;
@@ -37,7 +38,7 @@ namespace Bynder.Sdk.Service.Asset
         /// </summary>
         /// <returns>Task with dictionary of metaproperties</returns>
         /// <exception cref="HttpRequestException">Can be thrown when requests to server can't be completed or HTTP code returned by server is an error</exception>
-        Task<IDictionary<string, Metaproperty>> GetMetapropertiesAsync();
+        Task<IDictionary<string, Metaproperty>> GetMetapropertiesAsync(MetapropertiesQuery query = default);
 
         /// <summary>
         /// Retrieve specific Metaproperty
@@ -50,11 +51,27 @@ namespace Bynder.Sdk.Service.Asset
         /// <summary>
         /// Retrieve metaproperty dependencies
         /// </summary>
-        /// <param name="query">iquery containing the metaproperty ID</param>
+        /// <param name="query">query containing the metaproperty ID</param>
         /// <returns>List of the metaproperty's dependencies</returns>
         /// <exception cref="HttpRequestException">Can be thrown when requests to server can't be completed or HTTP code returned by server is an error</exception>
         Task<IList<string>> GetMetapropertyDependenciesAsync(MetapropertyQuery query);
 
+        /// <summary>
+        /// Retrieve metaproperty options
+        /// </summary>
+        /// <param name="query">query containing the metaproperty ID</param>
+        /// <returns>List of the metaproperty's options</returns>
+        /// <exception cref="HttpRequestException">Can be thrown when requests to server can't be completed or HTTP code returned by server is an error</exception>
+        Task<IList<MetapropertyOption>> GetMetapropertyOptionsAsync(MetapropertyOptionsQuery query);
+
+        /// <summary>
+        /// Create a new metaproperty option
+        /// </summary>
+        /// <param name="query">query containing the metaproperty ID</param>
+        /// <returns>List of the metaproperty's options</returns>
+        /// <exception cref="HttpRequestException">Can be thrown when requests to server can't be completed or HTTP code returned by server is an error</exception>
+        Task<Status> CreateMetapropertyOptionAsync(string metapropertyId, CreateMetapropertyOptionsQuery query);
+        
         /// <summary>
         /// Gets all the information for a specific mediaId. This is needed 
         /// to get the media items of a media.
@@ -80,7 +97,30 @@ namespace Bynder.Sdk.Service.Asset
         /// <returns>Task representing the upload</returns>
         /// <exception cref="HttpRequestException">Can be thrown when requests to server can't be completed or HTTP code returned by server is an error</exception>
         /// <exception cref="BynderUploadException">Can be thrown when upload does not finish within expected time</exception>
-        Task<SaveMediaResponse> UploadFileAsync(UploadQuery query);
+        [Obsolete("Use UploadFileAsync(fileStream, query) or UploadFileAsync(filePath, query) instead.")]
+        Task<SaveMediaResponse> UploadFileAsync(SaveMediaQuery query);
+
+        /// <summary>
+        /// Uploads a file async.
+        /// </summary>
+        /// <param name="fileStream">stream of the file to be uploaded</param>
+        /// <param name="query">Information to upload a file</param>
+        /// <returns>Task representing the upload</returns>
+        /// <exception cref="HttpRequestException">Can be thrown when requests to server can't be completed or HTTP code returned by server is an error</exception>
+        /// <exception cref="BynderUploadException">Can be thrown when upload does not finish within expected time</exception>
+
+        Task<SaveMediaResponse> UploadFileAsync(Stream fileStream, SaveMediaQuery query);
+
+        /// <summary>
+        /// Uploads a file async.
+        /// </summary>
+        /// <param name="filePath">path to the file to be uploaded</param>
+        /// <param name="query">Information to upload a file</param>
+        /// <returns>Task representing the upload</returns>
+        /// <exception cref="HttpRequestException">Can be thrown when requests to server can't be completed or HTTP code returned by server is an error</exception>
+        /// <exception cref="BynderUploadException">Can be thrown when upload does not finish within expected time</exception>
+
+        Task<SaveMediaResponse> UploadFileAsync(string filePath, SaveMediaQuery query);
 
         /// <summary>
         /// Modifies a media

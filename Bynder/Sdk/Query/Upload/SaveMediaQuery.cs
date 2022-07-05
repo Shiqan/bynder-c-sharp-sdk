@@ -1,6 +1,7 @@
-﻿// Copyright (c) Bynder. All rights reserved.
+// Copyright (c) Bynder. All rights reserved.
 // Licensed under the MIT License. See LICENSE file in the project root for full license information.
 
+using System;
 using System.Collections.Generic;
 using Bynder.Sdk.Api.Converters;
 using Bynder.Sdk.Query.Decoder;
@@ -11,7 +12,7 @@ namespace Bynder.Sdk.Query.Upload
     /// Query that has the information to save media.
     /// This should only be used to upload a file
     /// </summary>
-    internal class SaveMediaQuery
+    public class SaveMediaQuery
     {
         /// <summary>
         /// Brand id we want to save media to
@@ -19,16 +20,17 @@ namespace Bynder.Sdk.Query.Upload
         [ApiField("brandid")]
         public string BrandId { get; set; }
 
-        /// <summary>
-        /// Name of the asset
-        /// </summary>
         [ApiField("name")]
-        public string Filename { get; set; }
+        public string FileName { get; set; }
 
-        /// <summary>
-        /// Import id
-        /// </summary>
-        public string ImportId { get; set; }
+        [ApiField("copyright")]
+        public string Copyright { get; set; }
+
+        [ApiField("description")]
+        public string Description { get; set; }
+
+        [ApiField("ISOPublicationDate", Converter = typeof(DateTimeOffsetConverter))]
+        public DateTimeOffset? PublicationDate { get; set; }
 
         /// <summary>
         /// Media id. If specified it will add the asset as new version
