@@ -28,6 +28,9 @@ namespace Bynder.Sdk.Query.Upload
 
         [ApiField("description")]
         public string Description { get; set; }
+        
+        [ApiField("isPublic")]
+        public bool IsPublic { get; set; }
 
         [ApiField("ISOPublicationDate", Converter = typeof(DateTimeOffsetConverter))]
         public DateTimeOffset? PublicationDate { get; set; }
