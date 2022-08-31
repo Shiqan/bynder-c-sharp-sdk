@@ -120,6 +120,17 @@ namespace Bynder.Sdk.Service.Asset
         }
 
         /// <inheritdoc/>
+        public async Task<MediaWithTotal> GetMediaWithTotalAsync(MediaWithTotalQuery query)
+        {
+            return await _requestSender.SendRequestAsync(new ApiRequest<MediaWithTotal>
+            {
+                Path = "/api/v4/media/",
+                HTTPMethod = HttpMethod.Get,
+                Query = query,
+            }).ConfigureAwait(false);
+        }
+
+        /// <inheritdoc/>
         public async Task<Uri> GetDownloadFileUrlAsync(DownloadMediaQuery query)
         {
             string path;
@@ -225,6 +236,16 @@ namespace Bynder.Sdk.Service.Asset
                 Path = $"/api/media/usage/",
                 HTTPMethod = HttpMethod.Delete,
                 Query = query
+            }).ConfigureAwait(false);
+        }
+        
+        /// <inheritdoc/>
+        public async Task<Status> DeleteAsset(string id)
+        {
+            return await _requestSender.SendRequestAsync(new ApiRequest
+            {
+                Path = $"/api/v4/media/{id}",
+                HTTPMethod = HttpMethod.Delete,
             }).ConfigureAwait(false);
         }
     }

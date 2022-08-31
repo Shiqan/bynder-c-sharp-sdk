@@ -20,18 +20,33 @@ namespace Bynder.Sdk.Query.Upload
         [ApiField("brandid")]
         public string BrandId { get; set; }
 
+        /// <summary>
+        /// Name of the asset.
+        /// </summary>
         [ApiField("name")]
         public string FileName { get; set; }
 
+        /// <summary>
+        /// Copyright information of the asset.
+        /// </summary>
         [ApiField("copyright")]
         public string Copyright { get; set; }
 
+        /// <summary>
+        /// Description of the asset.
+        /// </summary>
         [ApiField("description")]
         public string Description { get; set; }
-        
+
+        /// <summary>
+        /// Flags if the asset should be Public.
+        /// </summary>
         [ApiField("isPublic")]
         public bool IsPublic { get; set; }
 
+        /// <summary>
+        /// Date/time of publication in ISO08601-format.
+        /// </summary>
         [ApiField("ISOPublicationDate", Converter = typeof(DateTimeOffsetConverter))]
         public DateTimeOffset? PublicationDate { get; set; }
 
@@ -51,7 +66,7 @@ namespace Bynder.Sdk.Query.Upload
         /// <summary>
         /// Metaproperty options to set on the asset.
         /// </summary>
-        [ApiField("metaproperty", Converter = typeof(MetapropertyOptionsConverter))]
+        [ApiField("metaproperty.", Converter = typeof(MetapropertyOptionsConverter))]
         public IDictionary<string, IList<string>> MetapropertyOptions { get; set; } = new Dictionary<string, IList<string>>();
 
         /// <summary>

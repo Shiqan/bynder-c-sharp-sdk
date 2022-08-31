@@ -5,6 +5,7 @@ using System.Collections.Generic;
 using Bynder.Sdk.Model;
 using Bynder.Sdk.Api.Converters;
 using Bynder.Sdk.Query.Decoder;
+using System;
 
 namespace Bynder.Sdk.Query.Asset
 {
@@ -62,6 +63,24 @@ namespace Bynder.Sdk.Query.Asset
         public string Keyword { get; set; }
 
         /// <summary>
+        /// Indicates whether or not the response should only contain assets marked as public. 
+        /// </summary>
+        [ApiField("isPublic", Converter = typeof(BoolConverter))]
+        public bool? IsPublic { get; set; }
+
+        /// <summary>
+        /// Retrieve assets created after this date.
+        /// </summary>
+        [ApiField("dateCreated", Converter = typeof(DateTimeOffsetConverter))]
+        public DateTimeOffset? DateCreated { get; set; }
+
+        /// <summary>
+        /// Set a date range together with the <see cref="DateCreated"/> parameter.
+        /// </summary>
+        [ApiField("dateCreatedTo", Converter = typeof(DateTimeOffsetConverter))]
+        public DateTimeOffset? DateCreatedTo { get; set; }
+
+        /// <summary>
         /// The type of the asset
         /// </summary>
         [ApiField("type", Converter = typeof(LowerCaseEnumConverter))]
@@ -72,5 +91,12 @@ namespace Bynder.Sdk.Query.Asset
         /// </summary>
         [ApiField("propertyOptionId", Converter = typeof(ListConverter))]
         public IList<string> PropertyOptionId { get; set; } = new List<string>();
+
+        /// <summary>
+        /// Metaproperty option name.
+        /// e.g. property_City: Amsterdam
+        /// </summary>
+        [ApiField("property_", Converter = typeof(MetapropertyOptionsConverter))]
+        public IDictionary<string, IList<string>> MetapropertyOptionName { get; set; }
     }
 }
