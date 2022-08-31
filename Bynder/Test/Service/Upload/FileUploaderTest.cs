@@ -126,7 +126,7 @@ namespace Bynder.Test.Service.Upload
                         req.Query,
                         new SaveMediaQuery
                         {
-                            Filename = Path.GetFileName(_path),
+                            FileName = Path.GetFileName(_path),
                             BrandId = _brandId,
                             Tags = _tags,
                         }
@@ -139,7 +139,7 @@ namespace Bynder.Test.Service.Upload
         {
             var stream = new MemoryStream(_fileData);
             var saveMediaResponse = await _uploader.UploadFileToNewAssetAsync(stream, new SaveMediaQuery { 
-                Filename = Path.GetFileName(_path), 
+                FileName = Path.GetFileName(_path), 
                 BrandId = _brandId, 
                 Tags = _tags });
 
@@ -154,7 +154,7 @@ namespace Bynder.Test.Service.Upload
                         req.Query,
                         new SaveMediaQuery
                         {
-                            Filename = Path.GetFileName(_path),
+                            FileName = Path.GetFileName(_path),
                             BrandId = _brandId,
                             Tags = _tags,
                         }

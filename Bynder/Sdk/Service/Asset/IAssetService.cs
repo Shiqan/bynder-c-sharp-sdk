@@ -92,7 +92,16 @@ namespace Bynder.Sdk.Service.Asset
         Task<IList<Media>> GetMediaListAsync(MediaQuery query);
 
         /// <summary>
-        /// Modifies a media
+        /// Gets a list of media using query information including the total count. The media information is not complete, for example
+        /// media items for media returned are not present. For that client needs to call <see cref="RequestMediaInfoAsync(string)"/>
+        /// </summary>
+        /// <param name="query">information to correctly filter/paginate media list</param>
+        /// <returns>Task with List of media.</returns>
+        /// <exception cref="HttpRequestException">Can be thrown when requests to server can't be completed or HTTP code returned by server is an error</exception>
+        Task<MediaWithTotal> GetMediaWithTotalAsync(MediaWithTotalQuery query);
+
+        /// <summary>
+        /// Modifies a media file async.
         /// </summary>
         /// <param name="query">Information needed to modify a media</param>
         /// <returns>Task</returns>
@@ -190,6 +199,14 @@ namespace Bynder.Sdk.Service.Asset
         /// <returns>Task representing the operation</returns>
         /// <exception cref="HttpRequestException">Can be thrown when requests to server can't be completed or HTTP code returned by server is an error</exception>
         Task<Status> DeleteAssetUsage(AssetUsageQuery query);
+
+        /// <summary>
+        /// Delete an asset by <paramref name="id"/>.
+        /// Requires the MEDIAREMOVE security role.
+        /// </summary>
+        /// <param name="id">Asset id.</param>
+        /// <returns></returns>
+        Task<Status> DeleteAsset(string id);
 
     }
 }

@@ -64,7 +64,7 @@ namespace Bynder.Sdk.Service.Upload
             return await SaveMediaAsync(fileId, new SaveMediaQuery
             {
                 BrandId = brandId,
-                Filename = Path.GetFileName(path),
+                FileName = Path.GetFileName(path),
                 Tags = tags
             }).ConfigureAwait(false);
         }
@@ -83,7 +83,7 @@ namespace Bynder.Sdk.Service.Upload
             return await SaveMediaAsync(fileId, new SaveMediaQuery
             {
                 BrandId = brandId,
-                Filename = fileName,
+                FileName = fileName,
                 Tags = tags
             }).ConfigureAwait(false);
         }
@@ -97,9 +97,9 @@ namespace Bynder.Sdk.Service.Upload
         internal async Task<SaveMediaResponse> UploadFileToNewAssetAsync(string path, SaveMediaQuery query)
         {
             var fileId = await UploadFileAsync(path);
-            if (string.IsNullOrEmpty(query.Filename))
+            if (string.IsNullOrEmpty(query.FileName))
             {
-                query.Filename = Path.GetFileName(path);
+                query.FileName = Path.GetFileName(path);
             }
             return await SaveMediaAsync(fileId, query).ConfigureAwait(false);
         }
@@ -112,7 +112,7 @@ namespace Bynder.Sdk.Service.Upload
         /// <returns>Information about the created asset</returns>
         internal async Task<SaveMediaResponse> UploadFileToNewAssetAsync(Stream fileStream, SaveMediaQuery query)
         {
-            var fileId = await UploadFileAsync(query.Filename, fileStream);
+            var fileId = await UploadFileAsync(query.FileName, fileStream);
             return await SaveMediaAsync(fileId, query).ConfigureAwait(false);
         }
 
