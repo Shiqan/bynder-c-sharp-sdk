@@ -21,7 +21,7 @@ namespace Bynder.Sdk.Service.Upload
         /// <summary>
         /// Max chunk size
         /// </summary>
-        private const int CHUNK_SIZE = 1024 * 1024 * 5;
+        private const int CHUNK_SIZE = 1024 * 1024 * 16;
 
         /// <summary>
         /// Max polling iterations to wait for the asset to be converted.
@@ -31,7 +31,7 @@ namespace Bynder.Sdk.Service.Upload
         /// <summary>
         /// Iddle time between iterations
         /// </summary>
-        private const int POLLING_IDDLE_TIME = 2000;
+        private const int POLLING_IDDLE_TIME = 5000;
 
         /// <summary>
         /// Request sender used to call Bynder API.
@@ -78,7 +78,7 @@ namespace Bynder.Sdk.Service.Upload
         public async Task<SaveMediaResponse> UploadFileAsync(Stream fileStream, SaveMediaQuery query)
         {
             var uploadRequest = await UploadRequest(query.FileName).ConfigureAwait(false);
-            var finalizeResponse = await UploadStream(query.FileName, fileStream, uploadRequest).ConfigureAwait(false);
+            var finalizeResponse = await UploadStream(query.FileName, fileStream, uploadRequest, query.AsyncConversions).ConfigureAwait(false);
             return await FinalizeUploadRequest(finalizeResponse, query).ConfigureAwait(false);
         }
 
@@ -95,7 +95,7 @@ namespace Bynder.Sdk.Service.Upload
             FinalizeResponse finalizeResponse;
             using (var fileStream = File.Open(filePath, FileMode.Open, FileAccess.Read, FileShare.ReadWrite | FileShare.Delete))
             {
-                finalizeResponse = await UploadStream(query.FileName, fileStream, uploadRequest).ConfigureAwait(false);
+                finalizeResponse = await UploadStream(query.FileName, fileStream, uploadRequest, query.AsyncConversions).ConfigureAwait(false);
             }
 
             return await FinalizeUploadRequest(finalizeResponse, query).ConfigureAwait(false);
@@ -118,7 +118,7 @@ namespace Bynder.Sdk.Service.Upload
             }
         }
 
-        private async Task<FinalizeResponse> UploadStream(string fileName, Stream fileStream, UploadRequest uploadRequest)
+        private async Task<FinalizeResponse> UploadStream(string fileName, Stream fileStream, UploadRequest uploadRequest, bool asyncConversions)
         {
             uint chunkNumber = 0;
             var bytesRead = 0;
@@ -131,7 +131,7 @@ namespace Bynder.Sdk.Service.Upload
                 await UploadPartAsync(fileName, buffer, bytesRead, chunkNumber, uploadRequest, (uint)numberOfChunks).ConfigureAwait(false);
             }
 
-            return await FinalizeUploadAsync(uploadRequest, chunkNumber).ConfigureAwait(false);
+            return await FinalizeUploadAsync(uploadRequest, chunkNumber, asyncConversions).ConfigureAwait(false);
         }
 
         /// <summary>
@@ -315,7 +315,7 @@ namespace Bynder.Sdk.Service.Upload
         /// <param name="uploadRequest">Upload request information</param>
         /// <param name="chunkNumber">chunk number</param>
         /// <returns>Task with <see cref="FinalizeResponse"/> information</returns>
-        private async Task<FinalizeResponse> FinalizeUploadAsync(UploadRequest uploadRequest, uint chunkNumber)
+        private async Task<FinalizeResponse> FinalizeUploadAsync(UploadRequest uploadRequest, uint chunkNumber, bool asyncConversions)
         {
             var query = new FinalizeUploadQuery
             {
@@ -326,7 +326,7 @@ namespace Bynder.Sdk.Service.Upload
             };
             var request = new ApiRequest<FinalizeResponse>
             {
-                Path = $"/api/v4/upload/{query.UploadId}/",
+                Path = $"/api/v4/upload/{query.UploadId}/{(asyncConversions ? "?async_conversions=true" : "")}",
                 HTTPMethod = HttpMethod.Post,
                 Query = query
             };

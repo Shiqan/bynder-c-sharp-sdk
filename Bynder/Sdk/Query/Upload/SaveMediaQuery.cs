@@ -79,5 +79,9 @@ namespace Bynder.Sdk.Query.Upload
             MetapropertyOptions.Add(metapropertyId, optionIds);
         }
 
+        /// <summary>
+        /// Will allow the upload to be completed while the processing workers will finish the conversions asynchronously
+        /// </summary>
+        public bool AsyncConversions { get; set; } = false;
     }
 }
